@@ -1,12 +1,12 @@
 import type { Todo } from "@/database/todos";
-import { getCachedWeather, saveWeatherCache } from "@/database/todos";
 import { useTodos } from "@/hooks/useTodos";
+import { useWeather } from "@/hooks/useWeather";
 import { styles } from "@/styles/styles";
 import { getTodoGroups, isOverdue, type TodoFilter } from "@/utils/todoFilters";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Alert,
   FlatList,
@@ -18,52 +18,12 @@ import {
 } from "react-native";
 
 export default function HomeScreen() {
-  const [weather, setWeather] = useState<any>(null);
-  const [weatherLoading, setWeatherLoading] = useState(true);
-  useEffect(() => {
-    fetchWeather();
-  }, []);
-
-  const fetchWeather = async () => {
-    try {
-      const cachedWeather = await getCachedWeather();
-      const cacheAge = cachedWeather
-        ? Date.now() - cachedWeather.fetchedAt
-        : Infinity;
-
-      if (cachedWeather && cacheAge <= 10 * 60 * 1000) {
-        setWeather(cachedWeather.data);
-        return;
-      }
-
-      const params = new URLSearchParams({
-        latitude: "13.7563",
-        longitude: "100.5018",
-        current: "temperature_2m,precipitation",
-        hourly: "temperature_2m,rain,precipitation_probability",
-        daily:
-          "temperature_2m_max,temperature_2m_min,uv_index_max,precipitation_probability_max",
-        timezone: "Asia/Bangkok",
-      });
-
-      const response = await fetch(
-        `https://api.open-meteo.com/v1/forecast?${params.toString()}`,
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch weather");
-      }
-
-      const data = await response.json();
-
-      await saveWeatherCache(data);
-      setWeather(data);
-    } catch (error) {
-      console.error("Weather error:", error);
-    } finally {
-      setWeatherLoading(false);
-    }
-  };
+  const {
+    weather,
+    isLoading: weatherLoading,
+    error: weatherError,
+    reload: reloadWeather,
+  } = useWeather();
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [title, setTitle] = useState("");
@@ -83,6 +43,11 @@ export default function HomeScreen() {
     getTodoGroups(todos, todoFilter);
   const allTodos = [...filteredTodayTodos, ...filteredLaterTodos];
   const saveTodo = async () => {
+    if (!title.trim()) {
+      Alert.alert("Title required", "Please enter a title for this todo.");
+      return;
+    }
+
     if (editingTodoId) {
       await updateTodoById(editingTodoId, title, details, date);
     } else {
@@ -163,6 +128,18 @@ export default function HomeScreen() {
     <View style={styles.container}>
       {weatherLoading ? (
         <Text style={styles.weatherLoading}>Loading weather...</Text>
+      ) : weatherError && !weather ? (
+        <View style={styles.weatherErrorCard}>
+          <Text style={styles.weatherErrorTitle}>
+            Fail to load weather data
+          </Text>
+          <Text style={styles.weatherErrorText}>
+            Please check your internet connection
+          </Text>
+          <Pressable style={styles.reloadButton} onPress={reloadWeather}>
+            <Text style={styles.reloadButtonText}>Reload</Text>
+          </Pressable>
+        </View>
       ) : weather ? (
         <View style={styles.weatherContainer}>
           <Pressable
@@ -269,7 +246,7 @@ export default function HomeScreen() {
 
             <TextInput
               style={styles.input}
-              placeholder="Title"
+              placeholder="Title (required)"
               value={title}
               onChangeText={setTitle}
             />

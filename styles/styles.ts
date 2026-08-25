@@ -128,6 +128,43 @@ export const styles = StyleSheet.create({
     textAlign: "center",
   },
 
+  weatherErrorCard: {
+    width: "100%",
+    padding: 16,
+    borderRadius: 18,
+    marginBottom: 22,
+    backgroundColor: "#FFF1F2",
+    borderWidth: 1,
+    borderColor: "#FECDD3",
+  },
+
+  weatherErrorTitle: {
+    color: "#9F1239",
+    fontSize: 15,
+    fontWeight: "700",
+  },
+
+  weatherErrorText: {
+    color: "#BE123C",
+    fontSize: 13,
+    marginTop: 5,
+  },
+
+  reloadButton: {
+    alignSelf: "flex-start",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 10,
+    marginTop: 12,
+    backgroundColor: "#9F1239",
+  },
+
+  reloadButtonText: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: "700",
+  },
+
   weatherPressable: {
     flex: 1,
     minWidth: 0,
