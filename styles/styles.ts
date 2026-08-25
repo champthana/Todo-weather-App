@@ -20,8 +20,13 @@ export const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
+    alignItems: "flex-start",
+    gap: 12,
     paddingBottom: 24,
+  },
+  headerCopy: {
+    flex: 1,
+    minWidth: 0,
   },
   overlay: {
     flex: 1,
@@ -113,6 +118,115 @@ export const styles = StyleSheet.create({
     letterSpacing: 1.4,
     fontWeight: "700",
     color: "#8A84B8",
+  },
+
+  weatherLoading: {
+    width: "100%",
+    color: "#7C8195",
+    fontSize: 13,
+    marginBottom: 18,
+    textAlign: "center",
+  },
+
+  weatherPressable: {
+    flex: 1,
+    minWidth: 0,
+    borderRadius: 18,
+    overflow: "hidden",
+  },
+
+  weatherPressablePressed: {
+    opacity: 0.82,
+    transform: [{ scale: 0.98 }],
+  },
+  weatherContainer: {
+    width: "100%",
+    borderRadius: 18,
+    minHeight: 100,
+    marginBottom: 22,
+  },
+
+  row: {
+    flexDirection: "row",
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e5e7eb",
+    backgroundColor: "#fff",
+  },
+
+  headerCell: {
+    flex: 1,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+
+  cell: {
+    flex: 1,
+    textAlign: "center",
+    fontSize: 14,
+  },
+  weatherCard: {
+    minHeight: 100,
+    padding: 14,
+    borderRadius: 18,
+    backgroundColor: "#202338",
+    shadowColor: "#202338",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+
+  weatherHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+
+  weatherLocation: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+
+  weatherCity: {
+    color: "#FFFFFF",
+    fontSize: 15,
+    fontWeight: "700",
+  },
+
+  weatherTime: {
+    color: "#B9BDD2",
+    fontSize: 12,
+  },
+
+  weatherTemperature: {
+    color: "#FFFFFF",
+    fontSize: 36,
+    fontWeight: "700",
+    marginTop: 8,
+  },
+
+  weatherMainRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+
+  weatherStats: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    gap: 8,
+    flex: 1,
+  },
+
+  weatherStat: {
+    color: "#D9DCEE",
+    fontSize: 11,
+    fontWeight: "600",
+    flexShrink: 1,
   },
 
   title: {

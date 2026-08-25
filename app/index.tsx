@@ -1,9 +1,12 @@
 import type { Todo } from "@/database/todos";
+import { getCachedWeather, saveWeatherCache } from "@/database/todos";
 import { useTodos } from "@/hooks/useTodos";
 import { styles } from "@/styles/styles";
 import { getTodoGroups, isOverdue, type TodoFilter } from "@/utils/todoFilters";
+import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { useState } from "react";
+import { router } from "expo-router";
+import { useEffect, useState } from "react";
 import {
   Alert,
   FlatList,
@@ -15,6 +18,52 @@ import {
 } from "react-native";
 
 export default function HomeScreen() {
+  const [weather, setWeather] = useState<any>(null);
+  const [weatherLoading, setWeatherLoading] = useState(true);
+  useEffect(() => {
+    fetchWeather();
+  }, []);
+
+  const fetchWeather = async () => {
+    try {
+      const cachedWeather = await getCachedWeather();
+      const cacheAge = cachedWeather
+        ? Date.now() - cachedWeather.fetchedAt
+        : Infinity;
+
+      if (cachedWeather && cacheAge <= 10 * 60 * 1000) {
+        setWeather(cachedWeather.data);
+        return;
+      }
+
+      const params = new URLSearchParams({
+        latitude: "13.7563",
+        longitude: "100.5018",
+        current: "temperature_2m,precipitation",
+        hourly: "temperature_2m,rain,precipitation_probability",
+        daily:
+          "temperature_2m_max,temperature_2m_min,uv_index_max,precipitation_probability_max",
+        timezone: "Asia/Bangkok",
+      });
+
+      const response = await fetch(
+        `https://api.open-meteo.com/v1/forecast?${params.toString()}`,
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch weather");
+      }
+
+      const data = await response.json();
+
+      await saveWeatherCache(data);
+      setWeather(data);
+    } catch (error) {
+      console.error("Weather error:", error);
+    } finally {
+      setWeatherLoading(false);
+    }
+  };
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [title, setTitle] = useState("");
@@ -112,8 +161,59 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
+      {weatherLoading ? (
+        <Text style={styles.weatherLoading}>Loading weather...</Text>
+      ) : weather ? (
+        <View style={styles.weatherContainer}>
+          <Pressable
+            style={({ pressed }) => [
+              styles.weatherPressable,
+              pressed && styles.weatherPressablePressed,
+            ]}
+            onPress={() => router.push("/weather")}
+          >
+            <View style={styles.weatherCard}>
+              <View style={styles.weatherHeader}>
+                <View style={styles.weatherLocation}>
+                  <Ionicons
+                    name={
+                      new Date(weather.current.time).getHours() >= 6 &&
+                      new Date(weather.current.time).getHours() < 18
+                        ? "sunny"
+                        : "moon"
+                    }
+                    size={22}
+                    color="#FFD166"
+                  />
+                  <Text style={styles.weatherCity}>Bangkok</Text>
+                </View>
+              </View>
+              <View style={styles.weatherMainRow}>
+                <Text style={styles.weatherTemperature}>
+                  {Math.round(weather.current.temperature_2m)}°
+                </Text>
+                <View style={styles.weatherStats}>
+                  <Text style={styles.weatherStat}>
+                    H {Math.round(weather.daily.temperature_2m_max[0])}°
+                  </Text>
+                  <Text style={styles.weatherStat}>
+                    L {Math.round(weather.daily.temperature_2m_min[0])}°
+                  </Text>
+                  <Text style={styles.weatherStat}>
+                    UV {weather.daily.uv_index_max[0]}
+                  </Text>
+                  <Text style={styles.weatherStat}>
+                    Rain {weather.daily.precipitation_probability_max[0]}%
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </Pressable>
+        </View>
+      ) : null}
+
       <View style={styles.header}>
-        <View>
+        <View style={styles.headerCopy}>
           <Text style={styles.greeting}>YOUR DAILY PLANNER</Text>
           <Text style={styles.title}>My tasks</Text>
         </View>

@@ -16,6 +16,11 @@ type TodoRow = {
   date: string;
 };
 
+type WeatherCacheRow = {
+  data: string;
+  fetched_at: number;
+};
+
 let databasePromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
 const getDatabase = async () => {
@@ -32,6 +37,11 @@ const getDatabase = async () => {
       details TEXT NOT NULL DEFAULT '',
       completed INTEGER NOT NULL DEFAULT 0,
       date TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS weather_cache (
+      id INTEGER PRIMARY KEY NOT NULL,
+      data TEXT NOT NULL,
+      fetched_at INTEGER NOT NULL
     );
   `);
 
@@ -100,4 +110,27 @@ export const updateTodo = async (todo: Todo) => {
 export const removeTodo = async (todoId: string) => {
   const database = await getDatabase();
   await database.runAsync("DELETE FROM todos WHERE id = ?", todoId);
+};
+
+export const getCachedWeather = async () => {
+  const database = await getDatabase();
+  const row = await database.getFirstAsync<WeatherCacheRow>(
+    "SELECT data, fetched_at FROM weather_cache WHERE id = 1",
+  );
+
+  if (!row) return null;
+
+  return {
+    data: JSON.parse(row.data) as Record<string, any>,
+    fetchedAt: row.fetched_at,
+  };
+};
+
+export const saveWeatherCache = async (data: Record<string, any>) => {
+  const database = await getDatabase();
+  await database.runAsync(
+    "INSERT OR REPLACE INTO weather_cache (id, data, fetched_at) VALUES (1, ?, ?)",
+    JSON.stringify(data),
+    Date.now(),
+  );
 };
